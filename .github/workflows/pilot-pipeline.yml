@@ -24,15 +24,14 @@ jobs:
 
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
-      - uses: actions/download-artifact@v3
-        with:
-          name: ubuntu-pilot-cli
-
-      - name: Display structure of downloaded files
-        run: ls -R
+      - name: Download artifact
+        run: |
+          wget https://github.com/detailyang/pilot/suites/6235341913/artifacts/221315578
+          unzip ubuntu-pilot-cli.zip
 
       # Runs a single command using the runners shell
       - name: Fetch binance 24h avg price
         run: |
+          mkdir -p config
           echo ETHBTC > config/symbols
           RUST_LOG=pilot_pipeline=info ./ubuntu-pilot-cli pipeline --endpoint-auth-user 405130 --endpoint-auth-pass eyJrIjoiMjA3MTJlNjVjZDIxNWY3OTExMmE4YTIyMTMzOGE1ZWMzNjhhNmQ1NCIsIm4iOiJ0ZXN0IiwiaWQiOjQxOTg2M30= --endpoint-uri https://prometheus-prod-10-prod-us-central-0.grafana.net/api/prom/push --once --symbols config/symbols --workers 2
