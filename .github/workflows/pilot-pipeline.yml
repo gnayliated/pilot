@@ -38,4 +38,4 @@ jobs:
       # Runs a single command using the runners shell
       - name: Fetch binance 24h avg price
         run: |
-          RUST_LOG=pilot_pipeline=info ./target/debug/pilot-cli pipeline --endpoint-auth-user 405130 --endpoint-auth-pass eyJrIjoiMjA3MTJlNjVjZDIxNWY3OTExMmE4YTIyMTMzOGE1ZWMzNjhhNmQ1NCIsIm4iOiJ0ZXN0IiwiaWQiOjQxOTg2M30= --endpoint-uri https://prometheus-prod-10-prod-us-central-0.grafana.net/api/prom/push --once --symbols config/symbols --workers 2
+          RUST_LOG=pilot_pipeline=info ./target/release/pilot-cli pipeline --endpoint-auth-user 405130 --endpoint-auth-pass eyJrIjoiMjA3MTJlNjVjZDIxNWY3OTExMmE4YTIyMTMzOGE1ZWMzNjhhNmQ1NCIsIm4iOiJ0ZXN0IiwiaWQiOjQxOTg2M30= --endpoint-uri https://prometheus-prod-10-prod-us-central-0.grafana.net/api/prom/push --once --symbols config/symbols --workers 2
