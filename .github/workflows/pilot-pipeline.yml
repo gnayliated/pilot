@@ -35,4 +35,5 @@ jobs:
       - name: Fetch binance 24h avg price
         run: |
           tar -zxf pilot_v0.1_x86_64-unknown-linux-musl.tar.gz 
+          mkdir -p config; touch config/symbols
           RUST_LOG=pilot_pipeline=info ./pilot-cli pipeline --endpoint-auth-user 405130 --endpoint-auth-pass eyJrIjoiMjA3MTJlNjVjZDIxNWY3OTExMmE4YTIyMTMzOGE1ZWMzNjhhNmQ1NCIsIm4iOiJ0ZXN0IiwiaWQiOjQxOTg2M30= --endpoint-uri https://prometheus-prod-10-prod-us-central-0.grafana.net/api/prom/push --once --symbols config/symbols --workers 2
