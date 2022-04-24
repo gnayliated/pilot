@@ -29,11 +29,11 @@ jobs:
       - uses: actions-rs/toolchain@v1
         with:
           toolchain: stable
+      - uses: Swatinem/rust-cache@v1
       - uses: actions-rs/cargo@v1
         with:
           command: build
           args: --release --all-features
-      - uses: Swatinem/rust-cache@v1
 
       # Runs a single command using the runners shell
       - name: Fetch binance 24h avg price
