@@ -1,0 +1,61 @@
+[package]
+name = "pilot"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[workspace]
+members = ["crates/*"]
+
+[[bin]]
+name = "pilot-cli"
+path = "crates/pilot-cli/src/main.rs"
+test = false
+bench = false
+
+[dependencies.anyhow]
+version = "1"
+
+[dependencies.clap]
+version = "3"
+features = ["derive"]
+
+[dependencies.pilot-pipeline]
+path = "./crates/pilot-pipeline"
+
+[dependencies.prost]
+version = "0.10"
+
+[dependencies.prost-types]
+version = "0.10"
+
+[dependencies.bytes]
+version = "1"
+
+[dependencies.binance]
+git = "https://github.com/wisespace-io/binance-rs.git"
+
+[dependencies.chrono]
+version = "0.4"
+
+[dependencies.log]
+version = "0.4"
+
+[dependencies.env_logger]
+version = "0.9"
+
+[dependencies.threadpool]
+version = "1"
+
+[dependencies.http]
+version = "0.2"
+
+[dependencies.snap]
+version = "1"
+
+[dependencies.hyper]
+version = "0.14"
+
+[dependencies.reqwest]
+version = "0.10"
