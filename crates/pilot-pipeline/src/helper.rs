@@ -25,6 +25,10 @@ impl std::ops::Deref for Symbols {
 }
 
 pub(crate) fn parse_lines(s: &str) -> anyhow::Result<Symbols> {
+    if s.is_empty() {
+        return Ok(Symbols(Vec::new()));
+    }
+
     let file = File::open(s)?;
     let lines = std::io::BufReader::new(file)
         .lines()
@@ -130,68 +134,6 @@ pub(crate) fn build_remote_from_stats(stats: &Vec<PriceStats>) -> WriteRequest {
         })
         .collect::<Vec<_>>();
 
-    let usdt_volume_timeseries = stats
-        .iter()
-        .filter(|s| s.symbol.ends_with("USDT"))
-        .map(|stat| {
-            let labels = vec![
-                Label {
-                    name: "symbol".to_string(),
-                    value: stat.symbol.to_string(),
-                },
-                Label {
-                    name: "__name__".to_string(),
-                    value: "usdt_volume".to_string(),
-                },
-            ];
-
-            let sample = Sample {
-                value: stat.volume,
-                timestamp: now.timestamp_millis(),
-            };
-
-            let ts = TimeSeries {
-                /// For a timeseries to be valid, and for the samples and exemplars
-                /// to be ingested by the remote system properly, the labels field is required.
-                labels,
-                samples: vec![sample],
-                exemplars: vec![],
-            };
-            ts
-        })
-        .collect::<Vec<_>>();
-
-    let btc_volume_timeseries = stats
-        .iter()
-        .filter(|s| s.symbol.ends_with("BTC"))
-        .map(|stat| {
-            let labels = vec![
-                Label {
-                    name: "symbol".to_string(),
-                    value: stat.symbol.to_string(),
-                },
-                Label {
-                    name: "__name__".to_string(),
-                    value: "btc_volume".to_string(),
-                },
-            ];
-
-            let sample = Sample {
-                value: stat.volume,
-                timestamp: now.timestamp_millis(),
-            };
-
-            let ts = TimeSeries {
-                /// For a timeseries to be valid, and for the samples and exemplars
-                /// to be ingested by the remote system properly, the labels field is required.
-                labels,
-                samples: vec![sample],
-                exemplars: vec![],
-            };
-            ts
-        })
-        .collect::<Vec<_>>();
-
     let btc_trades_timeseries = stats
         .iter()
         .filter(|s| s.symbol.ends_with("BTC"))
@@ -254,21 +196,90 @@ pub(crate) fn build_remote_from_stats(stats: &Vec<PriceStats>) -> WriteRequest {
         })
         .collect::<Vec<_>>();
 
-    let metadata = ["btc_price", "usdt_price", "btc_trades", "usdt_trades"]
+    let btc_changes_timeseries = stats
         .iter()
-        .map(|x| MetricMetadata {
-            r#type: metric_metadata::MetricType::Gauge as i32,
-            metric_family_name: x.to_string(),
-            help: "".to_string(),
-            unit: "".to_string(),
+        .filter(|s| s.symbol.ends_with("BTC"))
+        .map(|stat| {
+            let labels = vec![
+                Label {
+                    name: "symbol".to_string(),
+                    value: stat.symbol.to_string(),
+                },
+                Label {
+                    name: "__name__".to_string(),
+                    value: "btc_change_percent".to_string(),
+                },
+            ];
+
+            let sample = Sample {
+                value: stat.price_change_percent.parse::<f64>().unwrap_or_default(),
+                timestamp: now.timestamp_millis(),
+            };
+
+            let ts = TimeSeries {
+                /// For a timeseries to be valid, and for the samples and exemplars
+                /// to be ingested by the remote system properly, the labels field is required.
+                labels,
+                samples: vec![sample],
+                exemplars: vec![],
+            };
+            ts
         })
         .collect::<Vec<_>>();
+
+    let usdt_changes_timeseries = stats
+        .iter()
+        .filter(|s| s.symbol.ends_with("USDT"))
+        .map(|stat| {
+            let labels = vec![
+                Label {
+                    name: "symbol".to_string(),
+                    value: stat.symbol.to_string(),
+                },
+                Label {
+                    name: "__name__".to_string(),
+                    value: "usdt_change_percent".to_string(),
+                },
+            ];
+
+            let sample = Sample {
+                value: stat.price_change_percent.parse::<f64>().unwrap_or_default(),
+                timestamp: now.timestamp_millis(),
+            };
+
+            let ts = TimeSeries {
+                /// For a timeseries to be valid, and for the samples and exemplars
+                /// to be ingested by the remote system properly, the labels field is required.
+                labels,
+                samples: vec![sample],
+                exemplars: vec![],
+            };
+            ts
+        })
+        .collect::<Vec<_>>();
+
+    let metadata = [
+        "btc_price",
+        "usdt_price",
+        "btc_trades",
+        "usdt_trades",
+        "btc_change_percent",
+        "usdt_change_percent",
+    ]
+    .iter()
+    .map(|x| MetricMetadata {
+        r#type: metric_metadata::MetricType::Gauge as i32,
+        metric_family_name: x.to_string(),
+        help: "".to_string(),
+        unit: "".to_string(),
+    })
+    .collect::<Vec<_>>();
 
     btc_price_timeseries.extend(usdt_price_timeseries);
     btc_price_timeseries.extend(btc_trades_timeseries);
     btc_price_timeseries.extend(usdt_trades_timeseries);
-    btc_price_timeseries.extend(btc_volume_timeseries);
-    btc_price_timeseries.extend(usdt_volume_timeseries);
+    btc_price_timeseries.extend(btc_changes_timeseries);
+    btc_price_timeseries.extend(usdt_changes_timeseries);
 
     WriteRequest {
         timeseries: btc_price_timeseries,

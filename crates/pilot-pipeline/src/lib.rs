@@ -32,7 +32,7 @@ pub struct Command {
     #[clap(long, default_value_t = 1)]
     pub workers: u8,
 
-    #[clap(long, parse(try_from_str = parse_lines))]
+    #[clap(long, parse(try_from_str = parse_lines), default_value = "")]
     pub symbols: Symbols,
 }
 
@@ -67,10 +67,11 @@ impl Pipeline {
         log::info!("loading 24h price stats {}", stats.len());
         stats.iter().for_each(|stat| {
             log::debug!(
-                "{}: last={} count={}",
+                "{}: last={} count={} price_change_percent={}",
                 stat.symbol,
                 stat.last_price,
-                stat.count
+                stat.count,
+                stat.price_change_percent,
             );
         });
 
