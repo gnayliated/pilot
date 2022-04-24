@@ -34,7 +34,6 @@ jobs:
                run_id: ${{github.event.workflow_run.id }},
             });
             var matchArtifact = artifacts.data.artifacts.filter((artifact) => {
-              console.log("artifact", artifact.name);
               return artifact.name == "ubuntu-pilot-cli"
             })[0];
             var download = await github.actions.downloadArtifact({
