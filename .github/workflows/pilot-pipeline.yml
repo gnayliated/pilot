@@ -49,4 +49,4 @@ jobs:
       - name: Fetch binance 24h avg price
         run: |
           unzip ubuntu-pilot-cli.zip && chmod +x ./pilot-cli
-          RUST_LOG=pilot_pipeline=info ./pilot-cli pipeline --endpoint-auth-user "${{ secrets.USER }}" --endpoint-auth-pass "${{ secrets.PASS }}" = --endpoint-uri https://prometheus-prod-10-prod-us-central-0.grafana.net/api/prom/push --once 
+          RUST_LOG=pilot_pipeline=info ./pilot-cli pipeline --endpoint-auth-user "${{ secrets.USER }}" --endpoint-auth-pass "${{ secrets.PASS }}" --endpoint-uri https://prometheus-prod-10-prod-us-central-0.grafana.net/api/prom/push --once 
