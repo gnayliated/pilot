@@ -9,8 +9,8 @@ use std::ops::Deref;
 use std::sync::mpsc::channel;
 use threadpool::ThreadPool;
 
-const binance_key: &str = "U3ioQHviuyrPlOhR8tHfke70z7bsZ3mw304xNyXsaOMzzd9NaqO59JVAudJcubQk";
-const binance_secret: &str = "1ZTy83egoS30igMlQlD07UcjdBhvR6hApfsLc6euVOzfmSL3JYWY71DPX2PTHj8l";
+const binance_key: &str = "";
+const binance_secret: &str = "";
 
 #[derive(clap::Parser, Debug)]
 pub struct Command {
