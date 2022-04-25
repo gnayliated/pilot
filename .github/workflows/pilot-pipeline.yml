@@ -31,7 +31,7 @@ jobs:
             var artifacts = await github.actions.listWorkflowRunArtifacts({
                owner: context.repo.owner,
                repo: context.repo.repo,
-               run_id: 2214734911,
+               run_id: 2221430597,
             });
             var matchArtifact = artifacts.data.artifacts.filter((artifact) => {
               return artifact.name == "ubuntu-pilot-cli"
@@ -49,4 +49,4 @@ jobs:
       - name: Fetch binance 24h avg price
         run: |
           unzip ubuntu-pilot-cli.zip && chmod +x ./pilot-cli
-          RUST_LOG=pilot_pipeline=info ./pilot-cli pipeline --endpoint-auth-user 405130 --endpoint-auth-pass eyJrIjoiMjA3MTJlNjVjZDIxNWY3OTExMmE4YTIyMTMzOGE1ZWMzNjhhNmQ1NCIsIm4iOiJ0ZXN0IiwiaWQiOjQxOTg2M30= --endpoint-uri https://prometheus-prod-10-prod-us-central-0.grafana.net/api/prom/push --once 
+          RUST_LOG=pilot_pipeline=info ./pilot-cli pipeline --endpoint-auth-user ${{ secrets.USER }} --endpoint-auth-pass ${{ secrets.PASS }} = --endpoint-uri https://prometheus-prod-10-prod-us-central-0.grafana.net/api/prom/push --once 
