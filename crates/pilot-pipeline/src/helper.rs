@@ -1,6 +1,5 @@
 use crate::Command;
 use binance::model::PriceStats;
-use http::{Method, Request};
 use hyper::{Body, Client};
 use pilot_proto::proto::metric_metadata;
 use pilot_proto::proto::Label;
@@ -10,7 +9,6 @@ use pilot_proto::proto::TimeSeries;
 use pilot_proto::proto::WriteRequest;
 use std::fs::File;
 use std::io::BufRead;
-use std::io::Write;
 use std::ops::Deref;
 
 #[derive(Clone, Debug)]

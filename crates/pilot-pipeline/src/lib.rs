@@ -1,11 +1,21 @@
 mod helper;
+pub mod orderbook;
 
 use crate::helper::Symbols;
+use crate::orderbook::{OrderbookConfig, PilotOrderBook};
 use binance::api::*;
 use binance::market::*;
+use binance::websockets::WebsocketEvent::OrderBook;
 use clap::Parser;
 use helper::parse_lines;
+use log::debug;
+use octorust::types::{
+    FilesAdditionalPropertiesData, GistsCreateRequest, PublicOneOf, PullsUpdateReviewRequest,
+};
+use octorust::{auth::Credentials, gists, Client};
+use std::collections::HashMap;
 use std::ops::Deref;
+use std::str::FromStr;
 use std::sync::mpsc::channel;
 use threadpool::ThreadPool;
 
@@ -15,18 +25,24 @@ const binance_secret: &str = "";
 #[derive(clap::Parser, Debug)]
 pub struct Command {
     #[clap(long)]
-    pub once: bool,
+    pub oneshot: bool,
+
+    #[clap(long)]
+    pub orderbook_path: Option<String>,
+
+    #[clap(long, default_value = "")]
+    pub gist_token: String,
 
     #[clap(long, default_value_t = 3)]
     pub retry: u8,
 
-    #[clap(long)]
+    #[clap(long, default_value = "")]
     pub endpoint_auth_user: String,
 
-    #[clap(long)]
+    #[clap(long, default_value = "")]
     pub endpoint_auth_pass: String,
 
-    #[clap(long)]
+    #[clap(long, default_value = "")]
     pub endpoint_uri: String,
 
     #[clap(long, default_value_t = 1)]
@@ -49,11 +65,66 @@ impl Pipeline {
     }
 
     pub fn run(self) {
-        if self.cmd.once {
+        if self.cmd.oneshot {
             self.fetch_and_push_prometheus();
-            return;
         }
-        todo!()
+
+        if !self.cmd.orderbook_path.is_none() {
+            self.fetch_orderbook_and_push();
+        }
+    }
+
+    pub fn fetch_orderbook_and_push(&self) {
+        let path = &self.cmd.orderbook_path.as_ref().unwrap();
+        let cfg = OrderbookConfig::from_str(path).unwrap();
+
+        cfg.symbols.iter().for_each(|s| {
+            let market: Market = Binance::new(None, None);
+            let orderbook = PilotOrderBook::from((
+                s.symbol.clone(),
+                s.aggregate,
+                market.get_custom_depth(&s.symbol, 5000).unwrap(),
+            ));
+
+            self.push_gists(orderbook)
+        })
+    }
+
+    pub fn push_gists(&self, ob: PilotOrderBook) {
+        let gist_token = self.cmd.gist_token.clone();
+        tokio::runtime::Runtime::new().unwrap().block_on(async {
+            let github = Client::new(
+                String::from("pilot-pipeline"),
+                Credentials::Token(gist_token),
+            )
+            .unwrap();
+
+            let now = chrono::Utc::now().format("%F-%H").to_string();
+            let description = format!("{}-{}", ob.symbol, now);
+            let g = gists::Gists::new(github);
+            let rv = g.list_all(None).await.unwrap();
+            let id = match rv.iter().find(|g| g.description == description) {
+                Some(g) => g.id.clone(),
+                None => {
+                    let req = GistsCreateRequest {
+                        description: description.clone(),
+                        r#public: Some(PublicOneOf::Bool(true)),
+                        files: maplit::hashmap! {
+                            description.clone() => FilesAdditionalPropertiesData {
+                                content: description.clone(),
+                            }
+                        },
+                    };
+                    let s = g.create(&req).await.unwrap();
+                    s.id
+                }
+            };
+            let req = PullsUpdateReviewRequest {
+                body: serde_json::to_string(&ob).unwrap(),
+            };
+            let comment = g.create_comment(&id, &req).await.unwrap();
+            log::debug!("comment {:?}", comment)
+        });
     }
 
     pub fn fetch_and_push_prometheus(&self) {

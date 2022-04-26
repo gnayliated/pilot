@@ -9,6 +9,7 @@ struct Args {
 #[derive(clap::Subcommand, Debug)]
 enum Action {
     Pipeline(pilot_pipeline::Command),
+    Upload(pilot_upload::Command),
 }
 
 fn main() {
@@ -22,6 +23,10 @@ fn main() {
         Action::Pipeline(cmd) => {
             let pipeline = pilot_pipeline::Pipeline::new(cmd);
             pipeline.run();
+        }
+        Action::Upload(cmd) => {
+            let u = pilot_upload::Uploader::new(cmd);
+            u.run();
         }
     }
 }

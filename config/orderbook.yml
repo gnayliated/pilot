@@ -1,0 +1,3 @@
+symbols:
+  - { symbol: "BTCUSDT", aggregate: 100.0 }
+  - { symbol: "ETHUSDT", aggregate: 10.0 }

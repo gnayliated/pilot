@@ -1,0 +1,17 @@
+[package]
+name = "pilot-upload"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+clap = "*"
+pilot-pipeline = {path = "../pilot-pipeline"}
+parquet = "*"
+octorust = {git = "https://github.com/detailyang/third-party-api-clients.git"}
+chrono = "*"
+serde_json = "*"
+serde = "*"
+tokio = "*"
+log = "*"

@@ -24,6 +24,9 @@ features = ["derive"]
 [dependencies.pilot-pipeline]
 path = "./crates/pilot-pipeline"
 
+[dependencies.pilot-upload]
+path = "./crates/pilot-upload"
+
 [dependencies.prost]
 version = "0.10"
 
@@ -58,4 +61,35 @@ version = "1"
 version = "0.14"
 
 [dependencies.reqwest]
-version = "0.10"
+version = "0.11"
+
+[dependencies.octorust]
+git = "https://github.com/detailyang/third-party-api-clients.git"
+
+[dependencies.tokio]
+version = "1"
+features = ["full"]
+
+[dependencies.serde]
+version = "1"
+
+[dependencies.maplit]
+version = "1.0.2"
+
+[dependencies.serde_json]
+version = "1"
+
+[dependencies.itertools]
+version = "0.8"
+
+[dependencies.float-cmp]
+version = "0.9"
+
+[dependencies.yaml-rust]
+version = "0.4.5"
+
+[dependencies.serde_yaml]
+version = "0.8"
+
+[dependencies.parquet]
+version = "12.0"

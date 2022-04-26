@@ -8,4 +8,5 @@ edition = "2021"
 [dependencies]
 clap = "*"
 pilot-pipeline = { path = "../pilot-pipeline"}
+pilot-upload = { path = "../pilot-upload"}
 env_logger = "0.9"
