@@ -51,7 +51,6 @@ jobs:
           unzip ubuntu-pilot-cli.zip && chmod +x ./pilot-cli
           RUST_LOG=pilot_pipeline=info ./pilot-cli pipeline  \
               --gist-token ${{ secrets.GIST }} \
-              --orderbook-path ./config/orderbook.yml \
               --endpoint-auth-user "${{ secrets.USER }}" \
               --endpoint-auth-pass "${{ secrets.PASS }}" \
               --endpoint-uri https://prometheus-prod-10-prod-us-central-0.grafana.net/api/prom/push \
