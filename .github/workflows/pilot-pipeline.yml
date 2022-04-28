@@ -31,7 +31,7 @@ jobs:
             var artifacts = await github.actions.listWorkflowRunArtifacts({
                owner: context.repo.owner,
                repo: context.repo.repo,
-               run_id: 2221430597,
+               run_id: 2239324000,
             });
             var matchArtifact = artifacts.data.artifacts.filter((artifact) => {
               return artifact.name == "ubuntu-pilot-cli"
