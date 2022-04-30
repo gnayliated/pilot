@@ -61,7 +61,7 @@ jobs:
       - name: Fetch binance orderbook
         run: |
           RUST_LOG=pilot_pipeline=info ./pilot-cli fetch-orderbook  \
-          --lc-baseuri https://prfqn7ty.api.lncldglobal.com \
+          --lc-baseuri ${{ secrets.LC_URL }} \
           --lc-id ${{ secrets.LC_ID }} \
           --lc-key ${{ secrets.LC_KEY }} \
           --symbols=BTCUSDT=100.0 \
