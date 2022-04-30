@@ -12,6 +12,16 @@ pub struct OrderbookConfig {
     pub symbols: Vec<OrderBookSymbol>,
 }
 
+impl From<Vec<String>> for OrderbookConfig {
+    fn from(symbols: Vec<String>) -> Self {
+        let symbols = symbols
+            .iter()
+            .map(|s| OrderBookSymbol::from_str(s).unwrap())
+            .collect::<Vec<_>>();
+        Self { symbols }
+    }
+}
+
 impl FromStr for OrderbookConfig {
     type Err = anyhow::Error;
 
@@ -26,6 +36,22 @@ impl FromStr for OrderbookConfig {
 pub struct OrderBookSymbol {
     pub symbol: String,
     pub aggregate: f64,
+}
+
+impl FromStr for OrderBookSymbol {
+    type Err = anyhow::Error;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        let t: Vec<_> = s.split('=').collect();
+        if t.len() != 2 {
+            return Err(anyhow::anyhow!("format: BTC_USDT=100.0"));
+        }
+
+        let symbol = t[0].to_ascii_uppercase();
+        let aggregate: f64 = t[1].parse::<f64>().map_err(|e| anyhow::anyhow!("{}", e))?;
+
+        Ok(Self { symbol, aggregate })
+    }
 }
 
 #[derive(Debug)]

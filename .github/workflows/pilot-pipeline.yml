@@ -45,13 +45,23 @@ jobs:
             var fs = require('fs');
             fs.writeFileSync('${{github.workspace}}/ubuntu-pilot-cli.zip', Buffer.from(download.data));
 
-      # Runs a single command using the runners shell
-      - name: Fetch binance
+      -name: unzip cli
         run: |
           unzip ubuntu-pilot-cli.zip && chmod +x ./pilot-cli
-          RUST_LOG=pilot_pipeline=info ./pilot-cli pipeline  \
-              --gist-token ${{ secrets.GIST }} \
+
+      # Runs a single command using the runners shell
+      - name: Fetch binance price
+        run: |
+          RUST_LOG=pilot_pipeline=info ./pilot-cli fetch-price  \
               --endpoint-auth-user "${{ secrets.USER }}" \
               --endpoint-auth-pass "${{ secrets.PASS }}" \
-              --endpoint-uri https://prometheus-prod-10-prod-us-central-0.grafana.net/api/prom/push \
-              --oneshot
+              --endpoint-uri https://prometheus-prod-10-prod-us-central-0.grafana.net/api/prom/push
+
+      # Runs a single command using the runners shell
+      - name: Fetch binance orderbook
+        run: |
+          RUST_LOG=pilot_pipeline=info ./pilot-cli fetch-orderbook  \
+          --lc-baseuri https://prfqn7ty.api.lncldglobal.com \
+          --lc-id prfqn7TYyAT5g1xct4B98wgU-MdYXbMMI \
+          --lc-key 7pO7V4ePGw4eemazxpGssGyg \
+          --orderbook-path ./config/orderbook.yml

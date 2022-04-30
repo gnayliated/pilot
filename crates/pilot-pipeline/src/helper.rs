@@ -1,4 +1,5 @@
-use crate::Command;
+use crate::fetch_price::PriceCommand;
+use crate::orderbook::PilotOrderBook;
 use binance::model::PriceStats;
 use hyper::{Body, Client};
 use pilot_proto::proto::metric_metadata;
@@ -7,6 +8,7 @@ use pilot_proto::proto::MetricMetadata;
 use pilot_proto::proto::Sample;
 use pilot_proto::proto::TimeSeries;
 use pilot_proto::proto::WriteRequest;
+use serde::Serialize;
 use std::fs::File;
 use std::io::BufRead;
 use std::ops::Deref;
@@ -38,7 +40,103 @@ pub(crate) fn parse_lines(s: &str) -> anyhow::Result<Symbols> {
     Ok(Symbols(lines))
 }
 
-pub(crate) fn write_remote_prom(cmd: &Command, wq: WriteRequest) -> anyhow::Result<u16> {
+#[derive(Serialize)]
+pub struct LCOrderBook {
+    requests: Vec<LCOrderBookRequest>,
+}
+
+#[derive(Serialize)]
+pub struct LCOrderBookRequest {
+    method: String,
+    path: String,
+    body: LCOrderBookRequestBody,
+}
+
+#[derive(Serialize)]
+pub struct LCOrderBookRequestBody {
+    ask: f64,
+    bid: f64,
+    price: f64,
+    created: i64,
+    from: String,
+}
+
+#[derive(Clone, Debug)]
+pub struct LCOption {
+    pub class_uri: String,
+    pub uri: String,
+    pub id: String,
+    pub key: String,
+    pub from: String,
+}
+
+impl From<(LCOption, PilotOrderBook)> for LCOrderBook {
+    fn from(p: (LCOption, PilotOrderBook)) -> Self {
+        let opt = p.0;
+        let path = &opt.class_uri;
+        let created = p.1.created;
+        let mut body =
+            p.1.asks
+                .iter()
+                .map(|x| LCOrderBookRequestBody {
+                    ask: x.volume,
+                    bid: 0.0,
+                    price: x.price,
+                    created: created,
+                    from: opt.from.clone(),
+                })
+                .map(|lc| LCOrderBookRequest {
+                    path: path.clone(),
+                    method: "POST".to_owned(),
+                    body: lc,
+                })
+                .collect::<Vec<_>>();
+        let bids_body =
+            p.1.bids
+                .iter()
+                .map(|x| LCOrderBookRequestBody {
+                    bid: x.volume,
+                    ask: 0.0,
+                    price: x.price,
+                    created: created,
+                    from: opt.from.clone(),
+                })
+                .map(|lc| LCOrderBookRequest {
+                    path: path.clone(),
+                    method: "POST".to_owned(),
+                    body: lc,
+                })
+                .collect::<Vec<_>>();
+
+        body.extend(bids_body);
+
+        LCOrderBook { requests: body }
+    }
+}
+
+pub(crate) fn post_orderbook_leancloud(opt: LCOption, ob: PilotOrderBook) -> anyhow::Result<u16> {
+    let client = reqwest::blocking::Client::new();
+    let body: LCOrderBook = LCOrderBook::from((opt.clone(), ob));
+    let body = serde_json::to_vec(&body).map_err(|e| anyhow::anyhow!("{}", e))?;
+    let res = client
+        .post(&opt.uri)
+        .header("User-Agent", "pilot/1.0")
+        .header("X-LC-Id", &opt.id)
+        .header("X-LC-Key", &opt.key)
+        .header("Content-Type", "application/json")
+        .body(reqwest::blocking::Body::from(body))
+        .send()
+        .map_err(|e| anyhow::anyhow!("{:?}", e))?;
+
+    let status = res.status();
+    log::debug!("response={:?}", res);
+    let text = res.text();
+    log::debug!("response body={:?}", text);
+
+    Ok(status.as_u16())
+}
+
+pub(crate) fn write_remote_prom(cmd: &PriceCommand, wq: WriteRequest) -> anyhow::Result<u16> {
     let buf = pilot_proto::serialize_write_request(&wq);
     let mut enc = snap::raw::Encoder::new();
     let mut output = vec![0; snap::raw::max_compress_len(buf.len())];

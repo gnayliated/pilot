@@ -8,7 +8,8 @@ struct Args {
 
 #[derive(clap::Subcommand, Debug)]
 enum Action {
-    Pipeline(pilot_pipeline::Command),
+    FetchPrice(pilot_pipeline::fetch_price::PriceCommand),
+    FetchOrderbook(pilot_pipeline::fetch_orderbook::OrderbookCommand),
     Upload(pilot_upload::Command),
 }
 
@@ -20,9 +21,13 @@ fn main() {
     println!("{:?}", args);
 
     match args.action {
-        Action::Pipeline(cmd) => {
-            let pipeline = pilot_pipeline::Pipeline::new(cmd);
-            pipeline.run();
+        Action::FetchPrice(pc) => {
+            let pf = pilot_pipeline::fetch_price::PriceFetcher::new(pc);
+            pf.run();
+        }
+        Action::FetchOrderbook(oc) => {
+            let pf = pilot_pipeline::fetch_orderbook::OrderbookFetcher::new(oc);
+            pf.run();
         }
         Action::Upload(cmd) => {
             let u = pilot_upload::Uploader::new(cmd);
