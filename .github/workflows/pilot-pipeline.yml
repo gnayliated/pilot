@@ -62,6 +62,7 @@ jobs:
         run: |
           RUST_LOG=pilot_pipeline=info ./pilot-cli fetch-orderbook  \
           --lc-baseuri https://prfqn7ty.api.lncldglobal.com \
-          --lc-id prfqn7TYyAT5g1xct4B98wgU-MdYXbMMI \
-          --lc-key 7pO7V4ePGw4eemazxpGssGyg \
-          --orderbook-path ./config/orderbook.yml
+          --lc-id ${{ secrets.LC_ID }} \
+          --lc-key ${{ secrets.LC_KEY }} \
+          --symbols=BTCUSDT=100.0 \
+          --symbols=ETHUSDT=10.0
