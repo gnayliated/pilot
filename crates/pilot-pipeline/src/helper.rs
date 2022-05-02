@@ -1,5 +1,5 @@
 use crate::fetch_price::PriceCommand;
-use crate::orderbook::PilotOrderBook;
+use crate::orderbook::{PilotAsks, PilotBids, PilotOrderBook};
 use binance::model::PriceStats;
 use hyper::{Body, Client};
 use pilot_proto::proto::metric_metadata;
@@ -54,9 +54,8 @@ pub struct LCOrderBookRequest {
 
 #[derive(Serialize)]
 pub struct LCOrderBookRequestBody {
-    ask: f64,
-    bid: f64,
-    price: f64,
+    asks: Vec<PilotAsks>,
+    bids: Vec<PilotBids>,
     created: i64,
     from: String,
 }
@@ -75,42 +74,20 @@ impl From<(LCOption, PilotOrderBook)> for LCOrderBook {
         let opt = p.0;
         let path = &opt.class_uri;
         let created = p.1.created;
-        let mut body =
-            p.1.asks
-                .iter()
-                .map(|x| LCOrderBookRequestBody {
-                    ask: x.volume,
-                    bid: 0.0,
-                    price: x.price,
-                    created: created,
-                    from: opt.from.clone(),
-                })
-                .map(|lc| LCOrderBookRequest {
-                    path: path.clone(),
-                    method: "POST".to_owned(),
-                    body: lc,
-                })
-                .collect::<Vec<_>>();
-        let bids_body =
-            p.1.bids
-                .iter()
-                .map(|x| LCOrderBookRequestBody {
-                    bid: x.volume,
-                    ask: 0.0,
-                    price: x.price,
-                    created: created,
-                    from: opt.from.clone(),
-                })
-                .map(|lc| LCOrderBookRequest {
-                    path: path.clone(),
-                    method: "POST".to_owned(),
-                    body: lc,
-                })
-                .collect::<Vec<_>>();
-
-        body.extend(bids_body);
-
-        LCOrderBook { requests: body }
+        let body = LCOrderBookRequestBody {
+            asks: p.1.asks,
+            bids: p.1.bids,
+            created: created,
+            from: opt.from.clone(),
+        };
+        let request = LCOrderBookRequest {
+            path: path.clone(),
+            method: "POST".to_owned(),
+            body,
+        };
+        LCOrderBook {
+            requests: vec![request],
+        }
     }
 }
 
