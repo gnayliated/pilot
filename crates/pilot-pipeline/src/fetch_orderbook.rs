@@ -49,8 +49,15 @@ impl OrderbookFetcher {
     }
 
     pub fn push_leancloud(&self, symbol: &str, ob: PilotOrderBook) {
+        let (_, today) = helper::load_yes_and_today();
+        let start = today.format("%Y%m%d").to_string();
+
         let opt = LCOption {
-            class_uri: format!("/1.1/classes/orderbook_{}", symbol.to_ascii_lowercase()),
+            class_uri: format!(
+                "/1.1/classes/orderbook_{}_{}",
+                symbol.to_ascii_lowercase(),
+                start
+            ),
             uri: format!("{}/1.1/batch", self.cmd.lc_baseuri),
             id: self.cmd.lc_id.clone(),
             key: self.cmd.lc_key.clone(),

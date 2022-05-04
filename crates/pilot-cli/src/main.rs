@@ -10,6 +10,7 @@ struct Args {
 enum Action {
     FetchPrice(pilot_pipeline::fetch_price::PriceCommand),
     FetchOrderbook(pilot_pipeline::fetch_orderbook::OrderbookCommand),
+    LoadOrderbook(pilot_pipeline::load_orderbook::OrderbookCommand),
     Upload(pilot_upload::Command),
 }
 
@@ -27,6 +28,10 @@ fn main() {
         }
         Action::FetchOrderbook(oc) => {
             let pf = pilot_pipeline::fetch_orderbook::OrderbookFetcher::new(oc);
+            pf.run();
+        }
+        Action::LoadOrderbook(oc) => {
+            let pf = pilot_pipeline::load_orderbook::OrderbookLoader::new(oc);
             pf.run();
         }
         Action::Upload(cmd) => {

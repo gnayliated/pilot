@@ -1,17 +1,28 @@
 use crate::fetch_price::PriceCommand;
 use crate::orderbook::{PilotAsks, PilotBids, PilotOrderBook};
 use binance::model::PriceStats;
+use chrono::{Date, DateTime, Duration, Local, Utc};
 use hyper::{Body, Client};
+use octocrab::models::repos::{FileUpdate, GitUser};
 use pilot_proto::proto::metric_metadata;
 use pilot_proto::proto::Label;
 use pilot_proto::proto::MetricMetadata;
 use pilot_proto::proto::Sample;
 use pilot_proto::proto::TimeSeries;
 use pilot_proto::proto::WriteRequest;
-use serde::Serialize;
+use reqwest::Url;
+use serde::{Deserialize, Serialize};
 use std::fs::File;
 use std::io::BufRead;
 use std::ops::Deref;
+
+#[derive(Debug)]
+pub struct OrderbookRow {
+    pub(crate) timestamp: i64,
+    pub(crate) price: f64,
+    pub(crate) volume: f64,
+    pub(crate) from: String,
+}
 
 #[derive(Clone, Debug)]
 pub struct Symbols(Vec<String>);
@@ -45,19 +56,24 @@ pub struct LCOrderBook {
     requests: Vec<LCOrderBookRequest>,
 }
 
-#[derive(Serialize)]
+#[derive(Debug, Deserialize)]
+pub struct LCOrderBookResponse {
+    pub(crate) results: Vec<LCOrderBookRequestBody>,
+}
+
+#[derive(Serialize, Debug, Deserialize)]
 pub struct LCOrderBookRequest {
     method: String,
     path: String,
     body: LCOrderBookRequestBody,
 }
 
-#[derive(Serialize)]
+#[derive(Serialize, Debug, Deserialize)]
 pub struct LCOrderBookRequestBody {
-    asks: Vec<PilotAsks>,
-    bids: Vec<PilotBids>,
-    created: i64,
-    from: String,
+    pub(crate) asks: Vec<PilotAsks>,
+    pub(crate) bids: Vec<PilotBids>,
+    pub(crate) created: i64,
+    pub(crate) from: String,
 }
 
 #[derive(Clone, Debug)]
@@ -89,6 +105,107 @@ impl From<(LCOption, PilotOrderBook)> for LCOrderBook {
             requests: vec![request],
         }
     }
+}
+
+pub(crate) async fn create_file_to_repo(
+    token: &str,
+    owner: &str,
+    repo: &str,
+    path: impl Into<String>,
+    message: impl Into<String>,
+    content: impl AsRef<[u8]>,
+    branch: &str,
+    name: &str,
+    email: &str,
+) -> anyhow::Result<()> {
+    let user = GitUser {
+        name: name.to_string(),
+        email: email.to_string(),
+    };
+    let path = path.into();
+    let o = octocrab::OctocrabBuilder::new()
+        .personal_token(token.to_string())
+        .build()
+        .unwrap();
+
+    match o
+        .repos(owner, repo)
+        .get_content()
+        .path(path.clone())
+        .r#ref(branch)
+        .send()
+        .await
+    {
+        Ok(o) => Ok(()),
+        Err(e) => {
+            o.repos(owner, repo)
+                .create_file(path, message, content)
+                .branch(branch)
+                .commiter(user.clone())
+                .author(user)
+                .send()
+                .await
+                .map_err(|e| anyhow::anyhow!("{:?}", e))?;
+            Ok(())
+        }
+    }
+}
+
+pub fn load_yes_and_today() -> (DateTime<Utc>, DateTime<Utc>) {
+    let now = chrono::Utc::now();
+    let today = now.date();
+    let yesterday = today - Duration::days(1);
+    let today = today.and_hms(0, 0, 0);
+    let yesterday = yesterday.and_hms(0, 0, 0);
+
+    (yesterday, today)
+}
+
+pub(crate) fn delete_orderbook_leancloud(
+    opt: LCOption,
+    start: i64,
+    end: i64,
+) -> anyhow::Result<u16> {
+    let client = reqwest::blocking::Client::new();
+    let mut url = Url::parse(&opt.uri).unwrap();
+    let cond = r#"{"created":{"$gte": {start},"$lt": {end}}}"#
+        .replace("{start}", start.to_string().as_str())
+        .replace("{end}", end.to_string().as_str());
+    url.query_pairs_mut().append_pair("where", &cond);
+    let res = client
+        .delete(url)
+        .header("User-Agent", "pilot/1.0")
+        .header("X-LC-Id", &opt.id)
+        .header("X-LC-Key", &opt.key)
+        .header("Content-Type", "application/json")
+        .send()
+        .map_err(|e| anyhow::anyhow!("{:?}", e))?;
+
+    let status = res.status();
+    log::debug!("response={:?}", res);
+    let text = res.text();
+    log::debug!("response body={:?}", text);
+
+    Ok(status.as_u16())
+}
+
+pub(crate) fn load_orderbook_leancloud(opt: LCOption) -> anyhow::Result<LCOrderBookResponse> {
+    let client = reqwest::blocking::Client::new();
+    let url = Url::parse(&opt.uri).unwrap();
+    let res = client
+        .get(url)
+        .header("User-Agent", "pilot/1.0")
+        .header("X-LC-Id", &opt.id)
+        .header("X-LC-Key", &opt.key)
+        .header("Content-Type", "application/json")
+        .send()
+        .map_err(|e| anyhow::anyhow!("{:?}", e))?;
+
+    let body = res
+        .json::<LCOrderBookResponse>()
+        .map_err(|e| anyhow::anyhow!("{:?}", e))?;
+
+    Ok(body)
 }
 
 pub(crate) fn post_orderbook_leancloud(opt: LCOption, ob: PilotOrderBook) -> anyhow::Result<u16> {

@@ -80,7 +80,7 @@ impl PartialEq<Self> for F64 {
 
 impl Eq for F64 {}
 
-#[derive(Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct PilotBids {
     pub price: f64,
     pub volume: f64,
@@ -95,7 +95,7 @@ impl From<Bids> for PilotBids {
     }
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct PilotAsks {
     pub price: f64,
     pub volume: f64,
