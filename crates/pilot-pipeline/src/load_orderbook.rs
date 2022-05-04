@@ -74,18 +74,18 @@ impl OrderbookLoader {
                 start
             );
             self.save_order_book_parquet(&target, res);
-            paths.push((target, path));
+            paths.push((s.symbol.to_lowercase(), target, path));
         });
 
-        for (target, path) in paths.iter() {
+        for (symbol, target, path) in paths.iter() {
             let content = fs::read(target).expect("Unable to read file");
-            self.upload_file_to_repo(path, content);
+            self.upload_file_to_repo(symbol, path, content);
         }
     }
 
-    pub fn upload_file_to_repo(&self, path: &str, content: impl AsRef<[u8]>) {
+    pub fn upload_file_to_repo(&self, symbol: &str, path: &str, content: impl AsRef<[u8]>) {
         let owner = &self.cmd.owner;
-        let repo = &self.cmd.repo;
+        let repo = &format!("ob-{}", symbol);
         let message = format!("commit {}", path);
         let branch = &self.cmd.branch;
         let name = &self.cmd.name;
@@ -178,10 +178,10 @@ impl OrderbookLoader {
 
         let message_type = "
   message schema {
-    REQUIRED INT64 timestamp;
+    REQUIRED INT64  timestamp;
     REQUIRED DOUBLE price;
     REQUIRED DOUBLE volume;
-    REQUIRED BINARY msg (UTF8);
+    REQUIRED BINARY from (UTF8);
   }
 ";
         let schema = Arc::new(parse_message_type(message_type).unwrap());
