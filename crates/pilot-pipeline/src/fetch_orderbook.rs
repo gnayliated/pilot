@@ -53,11 +53,7 @@ impl OrderbookFetcher {
         let start = today.format("%Y%m%d").to_string();
 
         let opt = LCOption {
-            class_uri: format!(
-                "/1.1/classes/orderbook_{}_{}",
-                symbol.to_ascii_lowercase(),
-                start
-            ),
+            class_uri: format!("/1.1/classes/ob_{}_{}", symbol.to_ascii_lowercase(), start),
             uri: format!("{}/1.1/batch", self.cmd.lc_baseuri),
             id: self.cmd.lc_id.clone(),
             key: self.cmd.lc_key.clone(),

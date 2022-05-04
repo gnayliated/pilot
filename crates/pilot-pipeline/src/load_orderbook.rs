@@ -108,15 +108,12 @@ impl OrderbookLoader {
 
     pub fn delete_orderbook_leancloud(&self, symbol: &str, start: i64, end: i64) {
         let opt = LCOption {
-            class_uri: format!(
-                "/1.1/classes/orderbook_{}_{}",
+            class_uri: format!("/1.1/classes/ob_{}_{}", symbol.to_ascii_lowercase(), start),
+            uri: format!(
+                "{}/1.1/classes/ob_{}_{}",
+                self.cmd.lc_baseuri,
                 symbol.to_ascii_lowercase(),
                 start
-            ),
-            uri: format!(
-                "{}/1.1/classes/orderbook_{}/<objectId>",
-                self.cmd.lc_baseuri,
-                symbol.to_ascii_lowercase()
             ),
             id: self.cmd.lc_id.clone(),
             key: self.cmd.lc_key.clone(),
@@ -130,13 +127,9 @@ impl OrderbookLoader {
 
     pub fn load_orderbook_leancloud(&self, symbol: &str, start: &str) -> LCOrderBookResponse {
         let opt = LCOption {
-            class_uri: format!(
-                "/1.1/classes/orderbook_{}_{}",
-                symbol.to_ascii_lowercase(),
-                start
-            ),
+            class_uri: format!("/1.1/classes/ob_{}_{}", symbol.to_ascii_lowercase(), start),
             uri: format!(
-                "{}/1.1/classes/orderbook_{}_{}",
+                "{}/1.1/classes/ob_{}_{}",
                 self.cmd.lc_baseuri,
                 symbol.to_ascii_lowercase(),
                 start
