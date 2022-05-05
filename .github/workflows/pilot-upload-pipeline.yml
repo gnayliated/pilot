@@ -53,7 +53,7 @@ jobs:
       # Runs a single command using the runners shell
       - name: upload binance orderbook to git repo
         run: |
-          RUST_LOG=pilot_pipeline=info ./pilot-cli load-orderbook  \
+          ./pilot-cli load-orderbook  \
           --lc-baseuri ${{ secrets.LC_URL }} \
           --lc-id ${{ secrets.LC_ID }} \
           --lc-key ${{ secrets.LC_KEY }} \
