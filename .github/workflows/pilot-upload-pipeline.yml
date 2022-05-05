@@ -47,6 +47,7 @@ jobs:
 
       - name: unzip cli
         run: |
+          mkdir -p target
           unzip ubuntu-pilot-cli.zip && chmod +x ./pilot-cli
 
       # Runs a single command using the runners shell
