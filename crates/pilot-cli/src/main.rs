@@ -11,6 +11,7 @@ enum Action {
     FetchPrice(pilot_pipeline::fetch_price::PriceCommand),
     FetchOrderbook(pilot_pipeline::fetch_orderbook::OrderbookCommand),
     LoadOrderbook(pilot_pipeline::load_orderbook::OrderbookCommand),
+    RemoveOrderbook(pilot_pipeline::remove_orderbook::OrderbookCommand),
     Upload(pilot_upload::Command),
 }
 
@@ -28,6 +29,10 @@ fn main() {
         }
         Action::FetchOrderbook(oc) => {
             let pf = pilot_pipeline::fetch_orderbook::OrderbookFetcher::new(oc);
+            pf.run();
+        }
+        Action::RemoveOrderbook(oc) => {
+            let pf = pilot_pipeline::remove_orderbook::OrderbookRemover::new(oc);
             pf.run();
         }
         Action::LoadOrderbook(oc) => {
