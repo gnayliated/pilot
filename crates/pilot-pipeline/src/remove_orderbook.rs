@@ -12,6 +12,9 @@ pub struct OrderbookCommand {
     #[clap(long)]
     pub symbols: Vec<String>,
 
+    #[clap(long, default_value = "3")]
+    pub day: i64,
+
     #[clap(long, default_value = "")]
     pub lc_id: String,
 
@@ -79,8 +82,8 @@ impl OrderbookRemover {
 
         let now = chrono::Utc::now();
         let today = now.date();
-        let day2ago = today - chrono::Duration::days(2);
-        let day2 = day2ago.format("%Y%m%d");
+        let dayago = today - chrono::Duration::days(self.cmd.day);
+        let day2 = dayago.format("%Y%m%d");
 
         for symbol in self.cmd.symbols.iter() {
             let delete_uri = format!(
