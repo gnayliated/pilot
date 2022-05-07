@@ -56,5 +56,5 @@ jobs:
           ./pilot-cli remove-orderbook  \
           --symbols=BTCUSDT \
           --symbols=ETHUSDT \
-          --lc-email=${{ secrets.LC_EMAIL }} \
-          --lc-pass=${{ secrets.LC_PASS }}
+          --lc-email="${{ secrets.LC_EMAIL }}" \
+          --lc-pass="${{ secrets.LC_PASS }}"
