@@ -1,0 +1,13 @@
+[package]
+name = "pilot-arbitrage"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+binance = "*"
+clap = {version = "*", features = ["derive"]}
+serenity = {version = "0.11", features = ["http", "client", "builder", "rustls_backend", "model"]}
+tokio = "1.18.2"
+serde_json = "*"

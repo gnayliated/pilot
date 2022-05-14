@@ -8,6 +8,7 @@ struct Args {
 
 #[derive(clap::Subcommand, Debug)]
 enum Action {
+    Arbitrage(pilot_arbitrage::arbitrage::ArbitrageCommand),
     FetchPrice(pilot_pipeline::fetch_price::PriceCommand),
     FetchOrderbook(pilot_pipeline::fetch_orderbook::OrderbookCommand),
     LoadOrderbook(pilot_pipeline::load_orderbook::OrderbookCommand),
@@ -42,6 +43,10 @@ fn main() {
         Action::Upload(cmd) => {
             let u = pilot_upload::Uploader::new(cmd);
             u.run();
+        }
+        Action::Arbitrage(cmd) => {
+            let a = pilot_arbitrage::arbitrage::Arbitrage::new(cmd);
+            a.run();
         }
     }
 }

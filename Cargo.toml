@@ -27,6 +27,9 @@ path = "./crates/pilot-pipeline"
 [dependencies.pilot-upload]
 path = "./crates/pilot-upload"
 
+[dependencies.pilot-arbitrage]
+path = "./crates/pilot-arbitrage"
+
 [dependencies.prost]
 version = "0.10"
 

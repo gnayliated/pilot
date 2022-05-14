@@ -6,6 +6,7 @@
       <sourceFolder url="file://$MODULE_DIR$/crates/pilot-pipeline/src" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/crates/pilot-proto/src" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/crates/pilot-upload/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/crates/pilot-arbitrage/src" isTestSource="false" />
       <excludeFolder url="file://$MODULE_DIR$/target" />
     </content>
     <orderEntry type="inheritedJdk" />
