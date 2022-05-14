@@ -68,10 +68,10 @@ jobs:
           --symbols=ETHUSDT=10.0
 
       - name: Discovery binance arbitrage
-          run: |
-            RUST_LOG=pilot_pipeline=info ./pilot-cli arbitrage \
-            --symbols BTCUSDT \
-            --symbols ETHUSDT \
-            --token "${{ secrets.DISCORD_TOKEN }}" \
-            --channel 975036443913236490 \
-            --delta 2.0
+        run: |
+          RUST_LOG=pilot_pipeline=info ./pilot-cli arbitrage \
+          --symbols BTCUSDT \
+          --symbols ETHUSDT \
+          --token "${{ secrets.DISCORD_TOKEN }}" \
+          --channel 975036443913236490 \
+          --delta 2.0
